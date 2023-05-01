@@ -1,4 +1,4 @@
-def plot_multiple_ts_lines(dfs, names=None):
+def plot_multi_ts_lines(dfs, names=None):
     fig = go.Figure()
 
     for i, df in enumerate(dfs):
@@ -8,12 +8,15 @@ def plot_multiple_ts_lines(dfs, names=None):
         else:
             trace_name = f'Time Series {i+1}'
 
-        fig.add_trace(go.Scatter(x=df['date'], y=df['value'], mode='lines', name=trace_name))
+        # Use the first and second columns by indexing
+        date_col = df.columns[0]
+        value_col = df.columns[1]
+
+        fig.add_trace(go.Scatter(x=df[date_col], y=df[value_col], mode='lines', name=trace_name))
 
     fig.update_layout(title='Multiple Time Series Line Chart', xaxis_title='Date', yaxis_title='Value')
     fig.show()
-
-#plot_multiple_ts_lines([df1, df2, df3], names=['Series 1', 'Series 2', 'Series 3'])
+#plot_multi_ts_lines([df1, df2, df3], names=['Series 1', 'Series 2', 'Series 3'])
 
 
 def get_pct_weights(df: pd.DataFrame) -> pd.DataFrame:
