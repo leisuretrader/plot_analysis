@@ -1,4 +1,4 @@
-def plot_multi_ts_lines(dfs, names=None):
+def plot_smooth_multiple_time_series_plotly(dfs, names=None, resample_freq='D'):
     fig = go.Figure()
 
     for i, df in enumerate(dfs):
@@ -12,11 +12,17 @@ def plot_multi_ts_lines(dfs, names=None):
         date_col = df.columns[0]
         value_col = df.columns[1]
 
-        fig.add_trace(go.Scatter(x=df[date_col], y=df[value_col], mode='lines', name=trace_name))
+        # Set the date column as the index and resample with interpolation
+        df.set_index(date_col, inplace=True)
+        df_resampled = df.resample(resample_freq).interpolate(method='linear')
+        df_resampled.reset_index(inplace=True)
 
-    fig.update_layout(title='Multiple Time Series Line Chart', xaxis_title='Date', yaxis_title='Value')
+        # Use the original column names when accessing the resampled dataframe
+        fig.add_trace(go.Scatter(x=df_resampled[date_col], y=df_resampled[value_col], mode='lines', name=trace_name))
+
+    fig.update_layout(title='Smooth Multiple Time Series Line Chart', xaxis_title='Date', yaxis_title='Value')
     fig.show()
-#plot_multi_ts_lines([df1, df2, df3], names=['Series 1', 'Series 2', 'Series 3'])
+
 
 
 def get_pct_weights(df: pd.DataFrame) -> pd.DataFrame:
