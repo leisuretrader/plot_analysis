@@ -1,3 +1,21 @@
+def plot_multiple_ts_lines(dfs, names=None):
+    fig = go.Figure()
+
+    for i, df in enumerate(dfs):
+        # Assign a unique name for each trace
+        if names:
+            trace_name = names[i]
+        else:
+            trace_name = f'Time Series {i+1}'
+
+        fig.add_trace(go.Scatter(x=df['date'], y=df['value'], mode='lines', name=trace_name))
+
+    fig.update_layout(title='Multiple Time Series Line Chart', xaxis_title='Date', yaxis_title='Value')
+    fig.show()
+
+#plot_multiple_ts_lines([df1, df2, df3], names=['Series 1', 'Series 2', 'Series 3'])
+
+
 def get_pct_weights(df: pd.DataFrame) -> pd.DataFrame:
     """
     Takes a DataFrame with a date column and numerical columns, and returns a new DataFrame
