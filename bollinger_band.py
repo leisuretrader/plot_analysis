@@ -10,6 +10,25 @@ import streamlit as st
 PRODUCTS = ['Product A', 'Product B', 'Product C', 'Product D']
 LOCATIONS = ['Location 1', 'Location 2', 'Location 3', 'Location 4']
 
+def create_dataframe(products, locations, date_range, future=False):
+    df = pd.DataFrame()
+
+    for product in products:
+        for location in locations:
+            dates = [date_range[0] + timedelta(weeks=i) for i in range((date_range[1]-date_range[0]).days//7+1)]
+            df_temp = pd.DataFrame({
+                'date': dates,
+                'product': [product for _ in range(len(dates))],
+                'location': [location for _ in range(len(dates))],
+                'value': [random.randint(1, 100) for _ in range(len(dates))],
+            })
+            df = pd.concat([df,df_temp], ignore_index=True)
+
+    return df
+
+# Create past and future dataframes
+# df1 = create_dataframe(products, locations, [datetime.today() - timedelta(weeks=130), datetime.today()])
+
 def create_download_button(df, filename):
     csv = df.to_csv(index=False)
     b64 = base64.b64encode(csv.encode()).decode()
