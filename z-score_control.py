@@ -2,26 +2,20 @@ import pandas as pd
 import plotly.graph_objs as go
 import random
 from datetime import datetime, timedelta
+from itertools import product
 
 # Global constants
 PRODUCTS = ['Product A', 'Product B', 'Product C', 'Product D']
 LOCATIONS = ['Location 1', 'Location 2', 'Location 3', 'Location 4']
+Z_SCORE_THRESHOLD = 1
+NUM_WEEKS = 130
 
 def create_dataframe(products, locations, date_range):
-    df = pd.DataFrame()
-
-    for product in products:
-        for location in locations:
-            dates = [date_range[0] + timedelta(weeks=i) for i in range((date_range[1]-date_range[0]).days//7+1)]
-            df_temp = pd.DataFrame({
-                'date': dates,
-                'product': [product for _ in range(len(dates))],
-                'location': [location for _ in range(len(dates))],
-                'value': [random.randint(1, 100) for _ in range(len(dates))],
-            })
-            df = pd.concat([df, df_temp], ignore_index=True)
-
-    return df
+    dates = pd.date_range(date_range[0], date_range[1], freq='W')
+    data = []
+    for prod, loc in product(products, locations):
+        data.extend([(date, prod, loc, random.randint(1, 100)) for date in dates])
+    return pd.DataFrame(data, columns=['date', 'product', 'location', 'value'])
 
 def split_dataframe(df):
     return {name: group for name, group in df.groupby(['product', 'location'])}
@@ -35,7 +29,7 @@ def calculate_z_scores(df):
 
 def trim_values(df):
     df_trimmed = df.copy()
-    z_score_trim = 1
+    z_score_trim = Z_SCORE_THRESHOLD
     for i in range(-8, 0):
         mean = df_trimmed['mean'].iloc[i]
         std_dev = df_trimmed['std_dev'].iloc[i]
@@ -45,13 +39,6 @@ def trim_values(df):
             df_trimmed['value'].iloc[i] = mean - z_score_trim * std_dev
     return df_trimmed
 
-
-# def plot_timeseries(df, product, location, status):
-#     fig = go.Figure()
-#     fig.add_trace(go.Scatter(x=df['date'], y=df['value'], mode='lines', name='Value'))
-#     fig.update_layout(title=f"{product}, {location} - {status}", xaxis_title='Date', yaxis_title='Value')
-#     fig.show()
-    
 def plot_timeseries(df, product, location, status):
     fig = go.Figure()
     # Split the data into two parts based on the specified date
@@ -105,7 +92,8 @@ def process_data(df_dict):
     return trimmed_dataframes
 
 def main():
-    df = create_dataframe(PRODUCTS, LOCATIONS, [datetime.today() - timedelta(weeks=130), datetime.today()])
+    start_date = datetime.today() - timedelta(weeks=NUM_WEEKS)
+    df = create_dataframe(PRODUCTS, LOCATIONS, [start_date, datetime.today()])
     df_dict = split_dataframe(df)
     trimmed_dataframes = process_data(df_dict)
     # You can now use or analyze the trimmed_dataframes as needed
