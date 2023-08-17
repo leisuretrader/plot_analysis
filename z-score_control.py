@@ -46,11 +46,32 @@ def trim_values(df):
     return df_trimmed
 
 
+# def plot_timeseries(df, product, location, status):
+#     fig = go.Figure()
+#     fig.add_trace(go.Scatter(x=df['date'], y=df['value'], mode='lines', name='Value'))
+#     fig.update_layout(title=f"{product}, {location} - {status}", xaxis_title='Date', yaxis_title='Value')
+#     fig.show()
+    
 def plot_timeseries(df, product, location, status):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df['date'], y=df['value'], mode='lines', name='Value'))
+    # Split the data into two parts based on the specified date
+    mask = df['date'] < datetime(2023, 8, 1)
+    df_before = df[mask]
+    df_after = df[~mask]
+
+    # Create two traces with different colors
+    fig.add_trace(go.Scatter(x=df_before['date'], y=df_before['value'], mode='lines', name='Value - Before 8/1/2023', line=dict(color='blue')))
+    fig.add_trace(go.Scatter(x=df_after['date'], y=df_after['value'], mode='lines', name='Value - After 8/1/2023', line=dict(color='red')))
+    
+    # Create a trace to connect the two lines
+    if not df_before.empty and not df_after.empty:
+        fig.add_trace(go.Scatter(x=[df_before['date'].iloc[-1], df_after['date'].iloc[0]],
+                                  y=[df_before['value'].iloc[-1], df_after['value'].iloc[0]],
+                                  mode='lines', line=dict(color='blue'), showlegend=False))
+
     fig.update_layout(title=f"{product}, {location} - {status}", xaxis_title='Date', yaxis_title='Value')
     fig.show()
+
 
 def plot_z_scores(df, product, location):
     import plotly.graph_objs as go
@@ -82,8 +103,6 @@ def process_data(df_dict):
             trimmed_dataframes[(product, location)] = df_trimmed
 
     return trimmed_dataframes
-
-
 
 def main():
     df = create_dataframe(PRODUCTS, LOCATIONS, [datetime.today() - timedelta(weeks=130), datetime.today()])
